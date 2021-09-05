@@ -44,9 +44,25 @@ def dist_from_edge_ahead(img):
     col_ahead = np.flip(col_ahead)
     flipped_car_x = int(im_height - car_x)
     col_ahead[: flipped_car_x + 6] = 0  # 6 is a guess for the car length
-    print(col_ahead)
+    # print(col_ahead)
     indx_road = np.argmax(col_ahead)
     return indx_road - flipped_car_x if indx_road > 0 else -1
+
+def dist_from_right_and_left(img):
+    """
+    Returns the distance from the right and left edge of the road, in pixels.
+    If no edge is detected ahead or car cannot be located returns -1.
+    """
+    edges = detect_edge(img)
+    car_x, car_y = locate_car(img)
+    if car_x == -1 or car_y == -1:
+        return -1, -1
+    row_cur = edges[int(car_x), :]
+    left_side = np.flip(row_cur[:int(np.floor(car_y))-3])
+    right_side = row_cur[int(np.ceil(car_y))+3:]
+    # print(left_side)
+    # print(right_side)
+    return np.argmax(left_side), np.argmax(right_side)
 
 def strip_indicators(img):
     """
