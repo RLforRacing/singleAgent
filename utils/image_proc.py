@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.ndimage as snd
+from PIL import Image
 
 def rgb_to_gray(img):
     return img[:, :, 0] * 0.299 + img[:, :, 1] * 0.587 + img[:, :, 2] * 0.114
@@ -28,6 +29,39 @@ def locate_car(img):
         return -1, -1
     else:
         return snd.center_of_mass(red)
+
+
+def locate_off_road(img):
+    """
+    Locates the off road areas (ie, the green portions) of the image based on RGB value
+    RGBna: image where green pixels are turned black
+    green: locations of green pixels
+    """
+    RGBim = Image.fromarray(img)
+    HSVim = RGBim.convert('HSV')
+
+    # Make numpy versions
+    RGBna = np.array(img)
+    HSVna = np.array(HSVim)
+
+    # Extract Hue
+    H = HSVna[:,:,0]
+
+    # Find all green pixels, i.e. where 100 < Hue < 140
+    lo,hi = 100,140
+    # Rescale to 0-255, rather than 0-360 because we are using uint8
+    lo = int((lo * 255) / 360)
+    hi = int((hi * 255) / 360)
+    green = np.where((H>lo) & (H<hi))
+    #not_green = np.where(H<lo)
+
+    # Make all green pixels black in original image
+    RGBna[green] = [0,0,0]
+
+
+    return RGBna, green
+
+
 
 def dist_from_edge_ahead(img):
     """
